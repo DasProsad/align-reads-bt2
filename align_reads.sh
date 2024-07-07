@@ -21,29 +21,31 @@ create_index_if_not_exists() {
 align_reads() {
 	local fq_dir="$1"
 	local bt2_index="$2"
+ 	local threads="$3"
 	cd "$fq_dir" || exit
 	for fq in *_R1.fastq.gz; do
 		fq_base=$(basename "$fq" .fastq.gz | sed 's/_R1//g')
 		echo "Aligning ${fq_base}..."
 		
 		# Align reads and directly create sorted BAM
-		bowtie2 -p 6 --local -x "${bt2_index}" -1 "${fq_base}_R1.fastq.gz" -2 "${fq_base}_R2.fastq.gz" 2>"${fq_base}.log" | \
+		bowtie2 -p "$threads" --local -x "${bt2_index}" -1 "${fq_base}_R1.fastq.gz" -2 "${fq_base}_R2.fastq.gz" 2>"${fq_base}.log" | \
 		samtools view -h -b - | \
-		samtools sort -@ 6 -o "./${fq_base}.sorted.bam"
+		samtools sort -@ "$threads" -o "./${fq_base}.sorted.bam"
 		
 		# Index sorted BAM
 		echo "Indexing ${fq_base}.sorted.bam ..."
-		samtools index -@ 6 "${fq_base}.sorted.bam"
+		samtools index -@ "$threads" "${fq_base}.sorted.bam"
 	done
 }
 
 # Parse options
-while getopts "f:i:r:" flag; do
+while getopts "f:i:r:t" flag; do
 	case ${flag} in
 		f) fqdir="${OPTARG}" ;;
 		i) bt_index="${OPTARG}" ;;
 		r) ref_genome="${OPTARG}" ;;
-		\?) echo "Usage: $0 [-f fastq-directory] [-i bowtie2_index_path] [-r reference_genome]" >&2; exit 1 ;;
+  		t) threads="${OPTARG}";;
+		\?) echo "Usage: $0 [-f fastq-directory] [-i bowtie2_index_path] [-r reference_genome] [-t number-of-threads]" >&2; exit 1 ;;
 	esac
 done
 
