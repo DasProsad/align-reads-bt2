@@ -50,8 +50,8 @@ while getopts "f:i:r:t" flag; do
 done
 
 # Check if required options are set
-if [ -z "$fqdir" ] || [ -z "$bt_index" ] || [ -z "$ref_genome" ]; then
-	echo "Usage: $0 [-f fastq-path] [-i bowtie2-index-path] [-r reference-genome-path]" >&2
+if [ -z "$fqdir" ] || [ -z "$bt_index" ] || [ -z "$ref_genome" ] || [ -z "$threads" ]; then
+	echo "Usage: $0 [-f fastq-path] [-i bowtie2-index-path] [-r reference-genome-path] [-t number-of-threads]" >&2
 	exit 1
 fi
 
